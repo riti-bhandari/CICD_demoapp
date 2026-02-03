@@ -1,0 +1,38 @@
+name: Security Checks includes linting, spotbugs and gitleaks
+
+on:
+ workflow_call: 
+   inputs:
+     working-directory:
+      required: true
+      default: . 
+      type: string
+
+jobs:
+  security-scan:
+    name: scanning code
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Run linting
+        continue-on-error: true
+        working-directory: .
+        run: mvn checkstyle:check
+        
+      - name: Run spotbugs
+        working-directory: .
+        run: mvn checkstyle:check
+
+      - name: Gitleaks scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN:  ${{ secrets.GITHUB_TOKEN }}
+          
+            
+
+
+        
