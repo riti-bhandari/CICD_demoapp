@@ -1,1 +1,22 @@
-#name: This template perform unit testing
+name: Unit testing on Application code
+
+on:
+ workflow_call: 
+   inputs:
+     working-directory:
+       required: true
+       default: .
+       type: string
+
+jobs:
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - working-directory: ${{inputs.working-directory}}
+        run: |
+          chmod +x test-scripts/unit-test.sh
+          ./test-scripts/unit-test.sh
