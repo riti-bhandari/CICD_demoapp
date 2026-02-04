@@ -28,8 +28,7 @@ jobs:
         with:
             fetch-depth: 0
       - name: build image
-        run: docker build -t ${{inputs.image-name}}:${{inputs.image-tag}} -f ${{ inputs.dockerfile-path}} \
-             ${{ inputs.build-context }}
+        run: docker build -t ${{inputs.image-name}}:${{inputs.image-tag}} -f ${{ inputs.dockerfile-path}} ${{ inputs.build-context }}
       - name: scan job
         uses: aquasecurity/trivy-action@0.20.0
         with:
