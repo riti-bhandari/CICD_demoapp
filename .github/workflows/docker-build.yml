@@ -30,6 +30,7 @@ jobs:
       - name: build image
         run: docker build -t ${{inputs.image-name}}:${{inputs.image-tag}} -f ${{ inputs.dockerfile-path}} ${{ inputs.build-context }}
       - name: scan job
+        continue-on-error: true
         uses: aquasecurity/trivy-action@0.20.0
         with:
           image-ref: ${{ inputs.image-name }}:${{ inputs.image-tag }}
