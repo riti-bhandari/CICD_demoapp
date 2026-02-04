@@ -1,4 +1,4 @@
-name: Deploy to GCP VM
+name: Deploy to Azure VM
 
 on:
  workflow_call:
@@ -18,16 +18,16 @@ on:
         
 jobs:
  deploy:
-   name: deploy to GCP VM
+   name: deploy to Azure VM
    runs-on: ubuntu-latest
 
    steps:
     - name: SSH into VM and deploy
       uses: appleboy/ssh-action@v1.0.3
       with:
-        host: ${{secrets.GCP_VM_HOST}}
-        username: ${{secrets.GCP_VM_USER}}
-        key: ${{secrets.GCP_VM_SSH_KEY}}
+        host: ${{secrets.AZURE_VM_HOST}}
+        username: ${{secrets.AZURE_VM_USER}}
+        key: ${{secrets.AZURE_VM_SSH_KEY}}
         script: |
           docker pull ${{inputs.image-name}}:${{inputs.image-tag}}
           docker stop ${{inputs.container-name}} || true
