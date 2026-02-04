@@ -1,5 +1,16 @@
-release:
-    name: Tag & Push Docker Image
+name: tag and push image
+
+on:
+  workflow_call:
+    inputs:
+      build-context:
+        required: true
+        default: .
+        type: string
+      
+jobs:
+  release:
+    name: Tag Image
     if: github.event_name == 'push' || github.event.pull_request.merged == true
     needs: docker-build-scan
     runs-on: ubuntu-latest
