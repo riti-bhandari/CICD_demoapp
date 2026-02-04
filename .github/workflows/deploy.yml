@@ -1,1 +1,38 @@
+name: Deploy to GCP VM
 
+on:
+ workflow_call:
+  inputs:
+    image-name:
+      required: true
+      type: string
+    image-tag:
+       required: true
+       type: string
+    container-name:
+       required: true
+       type: string
+    app-port:
+       required: true
+       type: number
+        
+jobs:
+ deploy:
+   name: deploy to GCP VM
+   runs-on: ubuntu-latest
+
+   steps:
+    - name: SSH into VM and deploy
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{secrets.GCP_VM_HOST}}
+        username: ${{secrets.GCP_VM_USER}}
+        key: ${{secrets.GCP_VM_SSH_KEY}}
+        script: |
+          docker pull ${{inputs.image-name}}:${{inputs.image-tag}}
+          docker stop ${{inputs.container-name}} || true
+          docker rm ${{inputs.container-name}} || true
+
+          docker run -d --name ${{inputs.container-name}} -p 80:${{inputs.app-port}} ${{inputs.image-name}}:${{inputs.image-tag}}
+
+        
