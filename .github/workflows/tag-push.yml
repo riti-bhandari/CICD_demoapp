@@ -68,8 +68,8 @@ jobs:
       - name: Push Git tag
         if: steps.version.outputs.new_tag != ''
         run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
+          git config user.name "riti-bhandari"
+          git config user.email "ritibhandari16@gmail.com"
           git tag -a "${{ steps.version.outputs.new_tag }}" -m "Release ${{ steps.version.outputs.new_tag }}"
           git push origin "${{ steps.version.outputs.new_tag }}"
 
