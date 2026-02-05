@@ -15,6 +15,15 @@ on:
     app-port:
        required: true
        type: number
+    vm-host:
+       required: true
+       type: string
+    vm-user:
+       required: true 
+       type: string
+  secrets:
+      VM_SSH_KEY:
+       required: true
         
 jobs:
  deploy:
@@ -22,17 +31,19 @@ jobs:
    runs-on: ubuntu-latest
 
    steps:
-    - name: SSH into VM and deploy
-      uses: appleboy/ssh-action@v1.0.3
-      with:
-        host: ${{secrets.AZURE_VM_HOST}}
-        username: ${{secrets.AZURE_VM_USER}}
-        key: ${{secrets.AZURE_VM_SSH_KEY}}
-        script: |
-          docker pull ${{inputs.image-name}}:${{inputs.image-tag}}
-          docker stop ${{inputs.container-name}} || true
-          docker rm ${{inputs.container-name}} || true
+      - name: SSH into VM and deploy
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ inputs.vm-host }}
+          username: ${{ inputs.vm-user }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          script: |
+            docker pull ${{ inputs.image-name }}:${{ inputs.image-tag }}
 
-          docker run -d --name ${{inputs.container-name}} -p 80:${{inputs.app-port}} ${{inputs.image-name}}:${{inputs.image-tag}}
+            docker stop ${{ inputs.container-name }} || true
+            docker rm ${{ inputs.container-name }} || true
 
-        
+            docker run -d \
+              --name ${{ inputs.container-name }} \
+              -p 80:${{ inputs.app-port }} \
+              ${{ inputs.image-name }}:${{ inputs.image-tag }}
