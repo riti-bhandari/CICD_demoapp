@@ -68,8 +68,8 @@ jobs:
         run: |
           git config user.name "riti-bhandari"
           git config user.email "ritibhandari16@gmail.com"
-          git tag -a "${{ steps.version.outputs.latest_version }}" -m "Release ${{ steps.version.outputs.latest_version }}"
-          git push origin "${{ steps.version.outputs.latest_version }}"
+          git tag -a "${{ steps.version.outputs.new_tag }}" -m "Release ${{ steps.version.outputs.new_tag }}"
+          git push origin "${{ steps.version.outputs.new_tag }}"
 
       - name: Login to DockerHub
         uses: docker/login-action@v3
