@@ -3,9 +3,6 @@ name: tag and push image
 on:
   workflow_call:
     inputs:
-      image-tag:
-        required: true
-        type: string
       image-name:
         required: true
         type: string
@@ -17,7 +14,7 @@ on:
         required: true
         type: string
     secrets:
-      DOCKER_TOKEN:
+      DOCKERHUB_TOKEN:
        required: true
       DOCKERHUB_USERNAME:
        required: true
