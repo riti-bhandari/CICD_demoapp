@@ -83,11 +83,8 @@ jobs:
       - name: Build & push Docker image
         if: steps.version.outputs.new_tag != ''
         run: |
-          docker build
-            -t ${{ inputs.image-name }}:${{ steps.version.outputs.latest_version }} 
-            -f ${{ inputs.dockerfile-path }} 
-            ${{ inputs.build-context }}
-
+          docker build -t ${{ inputs.image-name }}:${{ steps.version.outputs.latest_version }} -f ${{ inputs.dockerfile-path }} ${{ inputs.build-context }}
+            
           docker push ${{ inputs.image-name }}:${{ steps.version.outputs.latest_version }}
 
 
