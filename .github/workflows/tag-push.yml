@@ -43,8 +43,11 @@ jobs:
           VERSION=${LAST_TAG#v}
           IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
 
-          SOURCE_BRANCH="${{ github.event.pull_request.head.ref }}"
-          TARGET_BRANCH="${{ github.event.pull_request.base.ref }}"
+          SOURCE_BRANCH="${GITHUB_HEAD_REF}"
+          TARGET_BRANCH="${GITHUB_BASE_REF}"
+
+          echo "Source branch: $SOURCE_BRANCH"
+          echo "Target branch: $TARGET_BRANCH"
 
           SHOULD_TAG=false
 
