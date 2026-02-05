@@ -60,6 +60,7 @@ jobs:
           if [[ "$SHOULD_TAG" == "true" ]]; then
             NEW_VERSION="$MAJOR.$MINOR.$PATCH"
             echo "new_tag=v$NEW_VERSION" >> $GITHUB_OUTPUT
+            echo "latest_version=$NEW_VERSION" >> $GITHUB_OUTPUT
           fi
 
       - name: Push Git tag
@@ -67,8 +68,8 @@ jobs:
         run: |
           git config user.name "riti-bhandari"
           git config user.email "ritibhandari16@gmail.com"
-          git tag -a "${{ steps.version.outputs.NEW_VERSION }}" -m "Release ${{ steps.version.outputs.NEW_VERSION }}"
-          git push origin "${{ steps.version.outputs.new_tag }}"
+          git tag -a "${{ steps.version.outputs.latest_version }}" -m "Release ${{ steps.version.outputs.latest_version }}"
+          git push origin "${{ steps.version.outputs.latest_version }}"
 
       - name: Login to DockerHub
         uses: docker/login-action@v3
@@ -80,11 +81,11 @@ jobs:
         if: steps.version.outputs.new_tag != ''
         run: |
           docker build \
-            -t ${{ inputs.image-name }}:${{ steps.version.outputs.NEW_VERSION }} \
+            -t ${{ inputs.image-name }}:${{ steps.version.outputs.latest_version }} \
             -f ${{ inputs.dockerfile-path }} \
             ${{ inputs.build-context }}
 
-          docker push ${{ inputs.image-name }}:${{ steps.version.outputs.NEW_VERSION }}
+          docker push ${{ inputs.image-name }}:${{ steps.version.outputs.latest_version }}
 
 
           
