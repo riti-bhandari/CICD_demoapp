@@ -112,13 +112,25 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-
+      
       - name: Build & push Docker image
         if: env.NEW_TAG != ''
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}   # secret passed from caller
+          IMAGE_NAME: ${{ inputs.image-name }}                    # input from workflow_call
+          BUILD_CONTEXT: ${{ inputs.build-context }}
+          DOCKERFILE_PATH: ${{ inputs.dockerfile-path }}
+          TAG: ${{ env.NEW_TAG }}                                 # from previous version step
         run: |
-          docker build -t ${ inputs.DOCKERHUB_USERNAME }/${{ inputs.image-name }}:$LATEST_TAG -f ${{ inputs.dockerfile-path }} ${{ inputs.build-context }}
-            
-          docker push ${ inputs.DOCKERHUB_USERNAME }/${{ inputs.image-name }}:$LATEST_TAG
+          echo "🔹 Docker build & push"
+          IMAGE_FULL="${DOCKERHUB_USERNAME}/${IMAGE_NAME}:${TAG}"
+          
+          echo "Building $IMAGE_FULL..."
+          docker build -t "$IMAGE_FULL" -f "$DOCKERFILE_PATH" "$BUILD_CONTEXT"
+          
+          echo "Pushing $IMAGE_FULL..."
+          docker push "$IMAGE_FULL"
+
 
 
           
