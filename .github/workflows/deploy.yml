@@ -21,9 +21,9 @@ on:
        required: true
        type: number
   secrets:
-      VM-HOST:
+      VM_HOST:
        required: true
-      VM-USER:
+      VM_USER:
        required: true 
       VM_SSH_KEY:
        required: true
@@ -39,8 +39,8 @@ jobs:
       - name: SSH into VM and deploy
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ inputs.vm-host }}
-          username: ${{ inputs.vm-user }}
+          host: ${{ inputs.VM_HOST }}
+          username: ${{ inputs.VM_USER }}
           key: ${{ secrets.VM_SSH_KEY }}
           script: |
                   DEBUG="${{ inputs.debug }}"
