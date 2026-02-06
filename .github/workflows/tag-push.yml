@@ -30,6 +30,8 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
+    env:
+      DEBUG: ${{inputs.debug}}
 
     steps:
       - name: Checkout repo
@@ -39,9 +41,11 @@ jobs:
 
       - name: Fetch git tags
         run: git fetch --tags
-      - name: debug on
-        env:
-          DEBUG: ${{inputs.debug}}
+        
+      - name: Decide version bump
+        id: version
+        # env: 
+        #   DEBUG: ${{inputs.debug}}
         run: |
           # Conditional verbose mode
           if [[ "$DEBUG" == "true" ]]; then
@@ -50,21 +54,6 @@ jobs:
           else
             echo "▶ Running in normal mode"
           fi
-
-          echo "=== Versioning info ==="
-          
-      - name: Decide version bump
-        id: version
-        # env: 
-        #   DEBUG: ${{inputs.debug}}
-        run: |
-          # # Conditional verbose mode
-          # if [[ "$DEBUG" == "true" ]]; then
-          #   echo "🔍 Debug mode enabled"
-          #   set -x
-          # else
-          #   echo "▶ Running in normal mode"
-          # fi
 
           echo "=== Versioning info ==="
           LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
@@ -97,6 +86,15 @@ jobs:
       - name: Push Git tag
         if: steps.version.outputs.new_tag != ''
         run: |
+          # Conditional verbose mode
+          if [[ "$DEBUG" == "true" ]]; then
+            echo "🔍 Debug mode enabled"
+            set -x
+          else
+            echo "▶ Running in normal mode"
+          fi
+
+          echo "=== Versioning info ==="
           # TAG="${{ steps.version.outputs.new_tag }}"
 
           # if git rev-parse "$TAG" >/dev/null 2>&1; then
