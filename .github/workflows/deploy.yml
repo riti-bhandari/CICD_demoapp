@@ -20,13 +20,11 @@ on:
     app-port:
        required: true
        type: number
-    vm-host:
-       required: true
-       type: string
-    vm-user:
-       required: true 
-       type: string
   secrets:
+      VM-HOST:
+       required: true
+      VM-USER:
+       required: true 
       VM_SSH_KEY:
        required: true
         
