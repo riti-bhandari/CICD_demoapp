@@ -116,9 +116,9 @@ jobs:
       - name: Build & push Docker image
         if: env.NEW_TAG != ''
         run: |
-          docker build -t ${{ inputs.image-name }}:$LATEST_TAG -f ${{ inputs.dockerfile-path }} ${{ inputs.build-context }}
+          docker build -t ${ inputs.DOCKERHUB_USERNAME }/${{ inputs.image-name }}:$LATEST_TAG -f ${{ inputs.dockerfile-path }} ${{ inputs.build-context }}
             
-          docker push ${{ inputs.image-name }}:$LATEST_TAG
+          docker push ${ inputs.DOCKERHUB_USERNAME }/${{ inputs.image-name }}:$LATEST_TAG
 
 
           
