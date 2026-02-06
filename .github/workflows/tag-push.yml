@@ -39,10 +39,8 @@ jobs:
 
       - name: Fetch git tags
         run: git fetch --tags
-
-      - name: Decide version bump
-        id: version
-        env: 
+      - name: debug on
+        env:
           DEBUG: ${{inputs.debug}}
         run: |
           # Conditional verbose mode
@@ -52,6 +50,21 @@ jobs:
           else
             echo "▶ Running in normal mode"
           fi
+
+          echo "=== Versioning info ==="
+          
+      - name: Decide version bump
+        id: version
+        # env: 
+        #   DEBUG: ${{inputs.debug}}
+        run: |
+          # # Conditional verbose mode
+          # if [[ "$DEBUG" == "true" ]]; then
+          #   echo "🔍 Debug mode enabled"
+          #   set -x
+          # else
+          #   echo "▶ Running in normal mode"
+          # fi
 
           echo "=== Versioning info ==="
           LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
