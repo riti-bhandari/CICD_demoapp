@@ -93,8 +93,8 @@ jobs:
 
           git config user.name "riti-bhandari"
           git config user.email "ritibhandari16@gmail.com"
-          git tag -a "$TAG" -m "Release $TAG"
-          git push origin "$TAG"
+          git tag -a "$new_tag" -m "Release $new_tag"
+          git push origin "$new_tag"
 
       - name: Login to DockerHub
         uses: docker/login-action@v3
