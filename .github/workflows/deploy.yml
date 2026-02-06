@@ -43,7 +43,4 @@ jobs:
             docker stop ${{ inputs.container-name }} || true
             docker rm ${{ inputs.container-name }} || true
 
-            docker run -d \
-              --name ${{ inputs.container-name }} \
-              -p 80:${{ inputs.app-port }} \
-              ${{ inputs.image-name }}:${{ inputs.image-tag }}
+            docker run -d --name ${{ inputs.container-name }} -p 80:${{ inputs.app-port }} ${{ inputs.image-name }}:${{ inputs.image-tag }}
