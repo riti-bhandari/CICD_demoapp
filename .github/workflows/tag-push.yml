@@ -3,6 +3,11 @@ name: tag and push image
 on:
   workflow_call:
     inputs:
+      debug:
+       description: "Enable verbose logging"
+       required: false
+       default: false
+       type: boolean
       image-name:
         required: true
         type: string
@@ -20,8 +25,7 @@ on:
        required: true
 
 permissions:
- contents: write
-      
+ contents: write      
       
 jobs:
   release:
@@ -38,7 +42,18 @@ jobs:
 
       - name: Decide version bump
         id: version
+        env: 
+          DEBUG: ${{inputs.debug}}
         run: |
+          # Conditional verbose mode
+          if [[ "$DEBUG" == "true" ]]; then
+            echo "🔍 Debug mode enabled"
+            set -x
+          else
+            echo "▶ Running in normal mode"
+          fi
+
+          echo "=== Versioning info ==="
           LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
           VERSION=${LAST_TAG#v}
           IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
@@ -69,12 +84,12 @@ jobs:
       - name: Push Git tag
         if: steps.version.outputs.new_tag != ''
         run: |
-          TAG="${{ steps.version.outputs.new_tag }}"
+          # TAG="${{ steps.version.outputs.new_tag }}"
 
-          if git rev-parse "$TAG" >/dev/null 2>&1; then
-            echo "Tag already exists. Skipping."
-            exit 0
-          fi
+          # if git rev-parse "$TAG" >/dev/null 2>&1; then
+          #   echo "Tag already exists. Skipping."
+          #   exit 0
+          # fi
 
           git config user.name "riti-bhandari"
           git config user.email "ritibhandari16@gmail.com"
