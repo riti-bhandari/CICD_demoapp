@@ -114,11 +114,11 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build & push Docker image
-        if: steps.version.outputs.new_tag != ''
+        if: env.NEW_TAG != ''
         run: |
-          docker build -t ${{ inputs.image-name }}:${{ steps.version.outputs.latest_version }} -f ${{ inputs.dockerfile-path }} ${{ inputs.build-context }}
+          docker build -t ${{ inputs.image-name }}:$LATEST_TAG -f ${{ inputs.dockerfile-path }} ${{ inputs.build-context }}
             
-          docker push ${{ inputs.image-name }}:${{ steps.version.outputs.latest_version }}
+          docker push ${{ inputs.image-name }}:$LATEST_TAG
 
 
           
