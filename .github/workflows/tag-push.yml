@@ -18,11 +18,16 @@ on:
       dockerfile-path:
         required: true
         type: string
+    outputs:
+      latest-tag:
+        description: "Latest docker image tag"
+        value: ${{ jobs.release.outputs.LATEST_TAG }}
     secrets:
       DOCKERHUB_TOKEN:
        required: true
       DOCKERHUB_USERNAME:
        required: true
+    
 
 permissions:
  contents: write      
@@ -30,6 +35,8 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
+    outputs:
+      latest-tag: ${{ steps.version.outputs.LATEST_TAG }}
     env:
       DEBUG: ${{inputs.debug}}
 
@@ -120,7 +127,7 @@ jobs:
           IMAGE_NAME: ${{ inputs.image-name }}                    # input from workflow_call
           BUILD_CONTEXT: ${{ inputs.build-context }}
           DOCKERFILE_PATH: ${{ inputs.dockerfile-path }}
-          TAG: ${{ env.NEW_TAG }}                                 # from previous version step
+          TAG: ${{ env.LATEST_TAG }}                                 # from previous version step
         run: |
           echo "🔹 Docker build & push"
           IMAGE_FULL="${DOCKERHUB_USERNAME}/${IMAGE_NAME}:${TAG}"
