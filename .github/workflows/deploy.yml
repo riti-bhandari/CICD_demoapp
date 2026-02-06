@@ -3,6 +3,11 @@ name: Deploy to Azure VM
 on:
  workflow_call:
   inputs:
+    debug:
+       description: "Enable verbose logging"
+       required: false
+       default: false
+       type: boolean
     image-name:
       required: true
       type: string
@@ -29,6 +34,8 @@ jobs:
  deploy:
    name: deploy to Azure VM
    runs-on: ubuntu-latest
+   env:
+      DEBUG: ${{inputs.debug}}
 
    steps:
       - name: SSH into VM and deploy
@@ -38,9 +45,20 @@ jobs:
           username: ${{ inputs.vm-user }}
           key: ${{ secrets.VM_SSH_KEY }}
           script: |
-            docker pull ${{ inputs.image-name }}:${{ inputs.image-tag }}
+                  DEBUG="${{ inputs.debug }}"
+                  # Conditional verbose mode
+                  if [[ "$DEBUG" == "true" ]]; then
+                    echo "🔍 Debug mode enabled"
+                    set -x
+                  else
+                    echo "▶ Running in normal mode"
+                  fi
+        
+                  echo "=== Versioning info ==="
 
-            docker stop ${{ inputs.container-name }} || true
-            docker rm ${{ inputs.container-name }} || true
-
-            docker run -d --name ${{ inputs.container-name }} -p 80:${{ inputs.app-port }} ${{ inputs.image-name }}:${{ inputs.image-tag }}
+                  docker pull ${{ inputs.image-name }}:${{ inputs.image-tag }}
+      
+                  docker stop ${{ inputs.container-name }} || true
+                  docker rm ${{ inputs.container-name }} || true
+      
+                  docker run -d --name ${{ inputs.container-name }} -p 80:${{ inputs.app-port }} ${{ inputs.image-name }}:${{ inputs.image-tag }}
