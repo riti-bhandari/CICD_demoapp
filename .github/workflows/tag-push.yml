@@ -88,7 +88,10 @@ jobs:
             NEW_VERSION="$MAJOR.$MINOR.$PATCH"
             echo "NEW_TAG=v$NEW_VERSION" >> $GITHUB_ENV
             echo "LATEST_TAG=$NEW_VERSION" >> $GITHUB_OUTPUT
+          else
+            echo "LATEST_TAG=pr-${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
           fi
+          
 
       - name: Push Git tag
         if: env.NEW_TAG != ''
@@ -128,15 +131,15 @@ jobs:
           BUILD_CONTEXT: ${{ inputs.build-context }}
           DOCKERFILE_PATH: ${{ inputs.dockerfile-path }}
           TAG: ${{ steps.version.outputs.LATEST_TAG }}                                 # from previous version step
-          PR_NUMBER: ${{ github.event.pull_request.number }}
+          # PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           echo "🔹 Docker build & push"
-          if [[ -z "$TAG" ]]; then
-            echo "⚠️ Tag is empty, using PR number"
-            TAG="pr-${PR_NUMBER}"
-          else
-            echo "✅ Using generated tag: $TAG"
-          fi
+          # if [[ -z "$TAG" ]]; then
+          #   echo "⚠️ Tag is empty, using PR number"
+          #   TAG="pr-${PR_NUMBER}"
+          # else
+          #   echo "✅ Using generated tag: $TAG"
+          # fi
           IMAGE_FULL="${DOCKERHUB_USERNAME}/${IMAGE_NAME}:${TAG}"
           
           echo "Building $IMAGE_FULL..."
