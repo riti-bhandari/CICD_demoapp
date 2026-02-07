@@ -58,9 +58,11 @@ jobs:
         
                   echo "=== Versioning info ==="
 
-                  docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ inputs.image-name }}:${{ inputs.image-tag }}
+                  IMAGE="${{ secrets.DOCKERHUB_USERNAME }}/${{ inputs.image-name }}:${{ inputs.image-tag }}"
+
+                  docker pull "$IMAGE"
       
                   docker stop ${{ inputs.container-name }} || true
                   docker rm ${{ inputs.container-name }} || true
       
-                  docker run -d --name ${{ inputs.container-name }} -p 80:${{ inputs.app-port }} ${{ inputs.image-name }}:${{ inputs.image-tag }}
+                  docker run -d --name ${{ inputs.container-name }} -p 80:${{ inputs.app-port }} "$IMAGE"
