@@ -1,0 +1,74 @@
+name: Deploy to AKS using Helm
+
+on:
+  workflow_call:
+    inputs:
+      debug:
+        required: false
+        default: false
+        type: boolean
+      image-name:
+        required: true
+        type: string
+      image-tag:
+        required: true
+        type: string
+      environment:
+        required: true
+        type: string
+      namespace:
+        required: true
+        type: string
+      helm-values-file:
+        required: true
+        type: string
+
+    secrets:
+      AZURE_CLIENT_ID:
+        required: true
+      AZURE_TENANT_ID:
+        required: true
+      AZURE_SUBSCRIPTION_ID:
+        required: true
+      AKS_RESOURCE_GROUP:
+        required: true
+      AKS_CLUSTER_NAME:
+        required: true
+
+jobs:
+  deploy:
+    name: Helm Deploy to AKS
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+
+    steps:
+      - name: Checkout app repo
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Set AKS context
+        uses: azure/aks-set-context@v3
+        with:
+          resource-group: ${{ secrets.AKS_RESOURCE_GROUP }}
+          cluster-name: ${{ secrets.AKS_CLUSTER_NAME }}
+
+      - name: Create namespace if not exists
+        run: |
+          kubectl get namespace ${{ inputs.namespace }} || \
+          kubectl create namespace ${{ inputs.namespace }}
+
+      - name: Deploy with Helm
+        run: |
+          helm upgrade --install my-demoapp-${{ inputs.environment }} ./helm-chart \
+            --namespace ${{ inputs.namespace }} \
+            -f helm-chart/values.yaml \
+            -f helm-chart/${{ inputs.helm-values-file }} \
+            --set image.repository=${{ secrets.DOCKERHUB_USERNAME }}/${{ inputs.image-name }} \
+            --set image.tag=${{ inputs.image-tag }} \
+            --wait
