@@ -34,6 +34,8 @@ on:
         required: true
       AKS_CLUSTER_NAME:
         required: true
+      DOCKERHUB_USERNAME:
+        required: true
 
 jobs:
   deploy:
@@ -65,7 +67,7 @@ jobs:
 
       - name: Deploy with Helm
         run: |
-          helm upgrade --install my-demoapp-${{ inputs.environment }} ./helm-chart \
+          helm upgrade --install ${{ inputs.environment }} ./helm-chart \
             --namespace ${{ inputs.namespace }} \
             -f helm-chart/values.yaml \
             -f helm-chart/${{ inputs.helm-values-file }} \
