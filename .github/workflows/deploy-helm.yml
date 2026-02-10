@@ -16,6 +16,9 @@ on:
       environment:
         required: true
         type: string
+      release_name:
+        required: true
+        type: string
       namespace:
         required: true
         type: string
@@ -38,16 +41,70 @@ on:
         required: true
 
 jobs:
-  helm-render-test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+    helm-render-test:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+        - uses: azure/setup-helm@v4
+  
+        - name: Helm Render Test
+          run: |
+            echo "Rendering Helm templates for release: ${{ inputs.release_name }} in env: ${{ inputs.environment }}"
+            helm template "${{ inputs.release_name }}" ./helm-chart \
+              -f helm-chart/values.yaml \
+              -f helm-chart/${{ inputs.helm-values-file }} \
+              --set image.repository=${{ secrets.DOCKERHUB_USERNAME }}/${{ inputs.image-name }} \
+              --set image.tag=${{ inputs.image-tag }} \
+              --debug
 
-      - uses: azure/setup-helm@v4
 
-      - name: Helm Render Test
-        run: |
-          helm template my-app ./helm-chart -f helm-chart/values.yml -f helm-chart/values-dev.yaml
+  # deploy:
+  #   name: Helm Deploy to AKS
+  #   runs-on: ubuntu-latest
+  #   environment: ${{ inputs.environment }}
+  #   needs: helm-render-test
+  #   steps:
+  #     - name: Checkout app repo
+  #       uses: actions/checkout@v4
+
+  #     - name: Azure Login
+  #       uses: azure/login@v1
+  #       with:
+  #         client-id: ${{ secrets.AZURE_CLIENT_ID }}
+  #         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+  #         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+  #     - name: Set AKS context
+  #       uses: azure/aks-set-context@v3
+  #       with:
+  #         resource-group: ${{ secrets.AKS_RESOURCE_GROUP }}
+  #         cluster-name: ${{ secrets.AKS_CLUSTER_NAME }}
+
+  #     - name: Create namespace if not exists
+  #       run: |
+  #         kubectl get namespace ${{ inputs.namespace }} || \
+  #         kubectl create namespace ${{ inputs.namespace }}
+
+  #     - name: Deploy with Helm
+  #       run: |
+  #         helm upgrade --install ${{ inputs.release_name }} ./helm-chart \
+  #           --namespace ${{ inputs.namespace }} \
+  #           -f helm-chart/values.yaml \
+  #           -f helm-chart/${{ inputs.helm-values-file }} \
+  #           --set image.repository=${{ secrets.DOCKERHUB_USERNAME }}/${{ inputs.image-name }} \
+  #           --set image.tag=${{ inputs.image-tag }} \
+  #           --wait
+
+
+
+
+
+
+
+
+
+
+          
   # deploy:
   #   name: Helm Deploy to AKS
   #   runs-on: ubuntu-latest
