@@ -6,12 +6,15 @@ on:
       image-tag:
         required: true
         type: string
+      environment:
+        required: true
+        type: string
       deployment-repo:
         required: true
         type: string
-      values-file:
-        required: true
-        type: string
+      # values-file:
+      #   required: true
+      #   type: string
     secrets:
       GH_PAT:
         required: true
@@ -36,16 +39,46 @@ jobs:
           sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq
           sudo chmod +x /usr/bin/yq
 
-      - name: Update image tag using yq
+# 3️⃣ Update Image Tag in Correct Environment File
+      - name: Update image tag
         run: |
           cd deployment-repo
-          yq e '.image.tag = "${{ inputs.image-tag }}"' -i ${{ inputs.values-file }}
+          
+          FILE="environments/${{ inputs.environment }}/values.yaml"
+          
+          echo "Updating file: $FILE"
+          
+          yq e ".image.tag = \"${{ inputs.image-tag }}\"" -i $FILE
 
-      - name: Commit and Push changes
+      # 4️⃣ Commit Changes
+      - name: Commit changes
         run: |
           cd deployment-repo
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-          git add ${{ inputs.values-file }}
-          git commit -m "Update image tag to ${{ inputs.image-tag }}"
+          git config user.name "riti-bhandari"
+          git config user.email "riti-bhandari16@gmail.com"
+          
+          git add .
+          git commit -m "Update image tag to ${{ inputs.image-tag }} for ${{ inputs.environment }}" || echo "No changes to commit"
+
+      # 5️⃣ Push Changes
+      - name: Push changes
+        run: |
+          cd deployment-repo
           git push
+
+
+
+          
+      # - name: Update image tag using yq
+      #   run: |
+      #     cd deployment-repo
+      #     yq e '.image.tag = "${{ inputs.image-tag }}"' -i ${{ inputs.values-file }}
+
+      # - name: Commit and Push changes
+      #   run: |
+      #     cd deployment-repo
+      #     git config user.name "github-actions"
+      #     git config user.email "github-actions@github.com"
+      #     git add ${{ inputs.values-file }}
+      #     git commit -m "Update image tag to ${{ inputs.image-tag }}"
+      #     git push
