@@ -52,7 +52,7 @@ jobs:
           echo "Updating file: $CHART_FILE"
           
           yq e ".image.tag = \"${{ inputs.image-tag }}\"" -i $VALUES_FILE
-          yq e ".appVersion = "\${{ inputs.image-tag }}\"" -i $CHART_FILE
+          yq e ".appVersion = \"${{ inputs.image-tag }}\"" -i $CHART_FILE
 
       # 4️⃣ Commit Changes
       - name: Commit changes
