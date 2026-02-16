@@ -12,9 +12,6 @@ on:
       deployment-repo:
         required: true
         type: string
-      # values-file:
-      #   required: true
-      #   type: string
     secrets:
       GH_PAT:
         required: true
@@ -23,10 +20,11 @@ permissions:
   contents: write
 
 jobs:
-  update-tag:
+  update-and-package:
     runs-on: ubuntu-latest
 
     steps:
+      # 1 Checkout Deployment Repo
       - name: Checkout deployment repo
         uses: actions/checkout@v4
         with:
@@ -34,55 +32,101 @@ jobs:
           token: ${{ secrets.GH_PAT }}
           path: deployment-repo
 
+      # 2 Install yq
       - name: Install yq
         run: |
           sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq
           sudo chmod +x /usr/bin/yq
 
-# 3️⃣ Update Image Tag in Correct Environment File
-      - name: Update image tag
+
+      # 3️ Setup Helm
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+
+      # 4️ Update Image Tag + App Version
+      - name: Update image tag and appVersion
         run: |
           cd deployment-repo
           
           VALUES_FILE="environments/${{ inputs.environment }}/values.yaml"
           CHART_FILE="helm-chart/Chart.yaml"
           
-          
-          echo "Updating file: $VALUES_FILE"
-          echo "Updating file: $CHART_FILE"
-          
+          echo "Updating image tag in: $VALUES_FILE"
           yq e ".image.tag = \"${{ inputs.image-tag }}\"" -i $VALUES_FILE
+          
+          echo "Updating appVersion in: $CHART_FILE"
           yq e ".appVersion = \"${{ inputs.image-tag }}\"" -i $CHART_FILE
 
-      # 4️⃣ Commit Changes
-      - name: Commit changes
-        run: |
-          cd deployment-repo
-          git config user.name "riti-bhandari"
-          git config user.email "riti-bhandari16@gmail.com"
-          
-          git add .
-          git commit -m "Update image tag to ${{ inputs.image-tag }} for ${{ inputs.environment }}" || echo "No changes to commit"
 
-      # 5️⃣ Push Changes
-      - name: Push changes
+      # 5️ Conditional Chart Version Bump
+      - name: Bump Chart Version if required
         run: |
           cd deployment-repo
+
+          echo "Checking for changes that require chart version bump..."
+
+          CHANGED_FILES=$(git status --porcelain | grep -E 'helm-chart/|values.yaml' || true)
+
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "No relevant changes detected. Skipping chart version bump."
+          else
+            echo "Changes detected:"
+            echo "$CHANGED_FILES"
+
+            CURRENT_VERSION=$(yq e '.version' helm-chart/Chart.yaml)
+            echo "Current Version: $CURRENT_VERSION"
+
+            IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+            PATCH=$((PATCH + 1))
+            NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+
+            echo "New Version: $NEW_VERSION"
+
+            yq e -i ".version = \"$NEW_VERSION\"" helm-chart/Chart.yaml
+
+            echo "Chart version bumped successfully."
+          fi
+
+
+      # 6️ Commit and Push Changes
+
+      - name: Commit and Push changes
+        run: |
+          cd deployment-repo
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
+          git add .
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+
+          git commit -m "Update image tag to ${{ inputs.image-tag }} and bump chart version for ${{ inputs.environment }}"
           git push
 
 
+      # 7️ Helm Lint & Package
+      - name: Helm Lint and Package
+        run: |
+          cd deployment-repo
 
-          
-      # - name: Update image tag using yq
-      #   run: |
-      #     cd deployment-repo
-      #     yq e '.image.tag = "${{ inputs.image-tag }}"' -i ${{ inputs.values-file }}
+          echo "Running Helm lint..."
+          helm lint ./helm-chart
 
-      # - name: Commit and Push changes
-      #   run: |
-      #     cd deployment-repo
-      #     git config user.name "github-actions"
-      #     git config user.email "github-actions@github.com"
-      #     git add ${{ inputs.values-file }}
-      #     git commit -m "Update image tag to ${{ inputs.image-tag }}"
-      #     git push
+          echo "Packaging Helm chart..."
+          helm package ./helm-chart
+
+          echo "Helm package created:"
+          ls -lh *.tgz
+
+
+      # 8️ Upload Helm Package Artifact
+
+      - name: Upload Helm Chart Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: helm-chart-package
+          path: deployment-repo/*.tgz
