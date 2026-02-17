@@ -1,9 +1,4 @@
-name: update image tag, chart version, helm package, package upload
-
-on: 
-  workflow_call:
-    inputs:
-      name: Update Deployment Repo Image Tag
+name: Update Deployment Repo Image Tag
 
 on:
   workflow_call:
@@ -20,4 +15,10 @@ on:
     secrets:
       GH_PAT:
         required: true
-   
+
+permissions:
+  contents: write
+
+jobs:
+  update-and-package:
+    runs-on: ubuntu-latest
