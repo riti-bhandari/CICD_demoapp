@@ -35,7 +35,7 @@ jobs:
   update-and-package:
     runs-on: ubuntu-latest
     outputs:
-      chart-version: ${{ steps.chart_version.outputs.CHART_VERSION }}
+      chart-version: ${{ steps.version.outputs.CHART_VERSION }}
     env:
       DEBUG: ${{ inputs.debug }}
     steps:
@@ -74,7 +74,7 @@ jobs:
     
       # 5️ Conditional Chart Version Bump
       - name: Bump Chart Version if required
-        id: chart_version 
+        id: version 
         run: |
           # Conditional verbose mode
           if [[ "$DEBUG" == "true" ]]; then
@@ -104,7 +104,7 @@ jobs:
             PATCH=$((PATCH + 1))
             NEW_VERSION="$MAJOR.$MINOR.$PATCH"
 
-            echo "CHART_VERSION= $NEW_VERSION" >> GITHUB_OUTPUT
+            echo "CHART_VERSION= $NEW_VERSION" >> $GITHUB_OUTPUT
             
 
             yq e -i ".version = \"$NEW_VERSION\"" apps/${{ inputs.app }}/helm-chart/Chart.yaml
