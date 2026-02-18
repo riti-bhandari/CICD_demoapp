@@ -69,6 +69,14 @@ jobs:
       - name: Bump Chart Version if required
         id: chart_version 
         run: |
+          # Conditional verbose mode
+          if [[ debug == "true" ]]; then
+              echo "🔍 Debug mode enabled"
+              set -x
+          else
+              echo "▶ Running in normal mode"
+          fi
+          
           cd deployment-repo
 
           echo "Checking for changes that require chart version bump..."
