@@ -15,6 +15,10 @@ on:
       app:
         required: true
         type: string
+    outputs:
+      chart-version:
+         description: "chart version updated"
+         value: ${{ jobs.update-and-package.outputs.chart-version }} 
     secrets:
       GH_PAT:
         required: true
@@ -25,6 +29,8 @@ permissions:
 jobs:
   update-and-package:
     runs-on: ubuntu-latest
+    outputs:
+      chart-version: ${{ steps.chart_version.outputs.CHART_VERSION }}
     steps:
       # 1 Checkout Deployment Repo
       - name: Checkout deployment repo
@@ -61,6 +67,7 @@ jobs:
     
       # 5️ Conditional Chart Version Bump
       - name: Bump Chart Version if required
+        id: chart_version 
         run: |
           cd deployment-repo
 
@@ -82,7 +89,8 @@ jobs:
             PATCH=$((PATCH + 1))
             NEW_VERSION="$MAJOR.$MINOR.$PATCH"
 
-            echo "New Version: $NEW_VERSION"
+            echo "CHART_VERSION= $NEW_VERSION" >> GITHUB_OUTPUT
+            
 
             yq e -i ".version = \"$NEW_VERSION\"" apps/${{ inputs.app }}/helm-chart/Chart.yaml
 
