@@ -12,7 +12,7 @@ on:
       deployment-repo:
         required: true
         type: string
-      APP:
+      app:
         required: true
         type: string
     secrets:
@@ -75,7 +75,7 @@ jobs:
             echo "Changes detected:"
             echo "$CHANGED_FILES"
 
-            CURRENT_VERSION=$(yq e '.version' apps/${{ inputs.APP }}/helm-chart/Chart.yaml)
+            CURRENT_VERSION=$(yq e '.version' apps/${{ inputs.app }}/helm-chart/Chart.yaml)
             echo "Current Version: $CURRENT_VERSION"
 
             IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
@@ -84,7 +84,7 @@ jobs:
 
             echo "New Version: $NEW_VERSION"
 
-            yq e -i ".version = \"$NEW_VERSION\"" apps/${{ inputs.APP }}/helm-chart/Chart.yaml
+            yq e -i ".version = \"$NEW_VERSION\"" apps/${{ inputs.app }}/helm-chart/Chart.yaml
 
             echo "Chart version bumped successfully."
           fi
@@ -115,10 +115,10 @@ jobs:
           cd deployment-repo
 
           echo "Running Helm lint..."
-          helm lint ./apps/${{ inputs.APP }}/helm-chart
+          helm lint ./apps/${{ inputs.app }}/helm-chart
 
           echo "Packaging Helm chart..."
-          helm package ./apps/${{ inputs.APP }}/helm-chart
+          helm package ./apps/${{ inputs.app }}/helm-chart
 
           echo "Helm package created:"
           ls -lh *.tgz
