@@ -6,10 +6,13 @@ on:
       image-tag:
         required: true
         type: string
-      environment:
+      env:
         required: true
         type: string
       deployment-repo:
+        required: true
+        type: string
+      APP:
         required: true
         type: string
     secrets:
@@ -46,8 +49,8 @@ jobs:
         run: |
           cd deployment-repo
           
-          VALUES_FILE="apps/app1/app1.yaml"
-          CHART_FILE="apps/app1/helm-chart/Chart.yaml"
+          VALUES_FILE="apps/${{ inputs.APP }}/${{ inputs.APP }}.yaml"
+          CHART_FILE="apps/${{ inputs.APP }}/helm-chart/Chart.yaml"
           
           echo "Updating image tag in: $VALUES_FILE"
           yq e ".image.tag = \"${{ inputs.image-tag }}\"" -i $VALUES_FILE
@@ -62,8 +65,9 @@ jobs:
           cd deployment-repo
 
           echo "Checking for changes that require chart version bump..."
+          
+          CHANGED_FILES=$(git status --porcelain | grep -E "apps/${{ inputs.APP }}/(helm-chart/|${{ inputs.APP }}\.yaml)" || true)
 
-          CHANGED_FILES=$(git status --porcelain | grep -E 'apps/app1/helm-chart/|values.yaml' || true)
 
           if [ -z "$CHANGED_FILES" ]; then
             echo "No relevant changes detected. Skipping chart version bump."
@@ -71,7 +75,7 @@ jobs:
             echo "Changes detected:"
             echo "$CHANGED_FILES"
 
-            CURRENT_VERSION=$(yq e '.version' apps/app1/helm-chart/Chart.yaml)
+            CURRENT_VERSION=$(yq e '.version' apps/${{ inputs.APP }}/helm-chart/Chart.yaml)
             echo "Current Version: $CURRENT_VERSION"
 
             IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
@@ -80,7 +84,7 @@ jobs:
 
             echo "New Version: $NEW_VERSION"
 
-            yq e -i ".version = \"$NEW_VERSION\"" apps/app1/helm-chart/Chart.yaml
+            yq e -i ".version = \"$NEW_VERSION\"" apps/${{ inputs.APP }}/helm-chart/Chart.yaml
 
             echo "Chart version bumped successfully."
           fi
@@ -102,7 +106,7 @@ jobs:
             exit 0
           fi
 
-          git commit -m "Update image tag to ${{ inputs.image-tag }} and bump chart version for ${{ inputs.environment }}"
+          git commit -m "Update image tag to ${{ inputs.image-tag }} and bump chart version for ${{ inputs.env }}"
           git push
 
                 # 7️ Helm Lint & Package
@@ -111,10 +115,10 @@ jobs:
           cd deployment-repo
 
           echo "Running Helm lint..."
-          helm lint ./apps/app1/helm-chart
+          helm lint ./apps/${{ inputs.APP }}/helm-chart
 
           echo "Packaging Helm chart..."
-          helm package ./apps/app1/helm-chart
+          helm package ./apps/${{ inputs.APP }}/helm-chart
 
           echo "Helm package created:"
           ls -lh *.tgz
