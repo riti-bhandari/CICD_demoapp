@@ -3,6 +3,11 @@ name: Update Deployment Repo Image Tag
 on:
   workflow_call:
     inputs:
+      debug: 
+        description: "debug chart"
+        required: true
+        default: false
+        type: boolean
       image-tag:
         required: true
         type: string
@@ -31,6 +36,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       chart-version: ${{ steps.chart_version.outputs.CHART_VERSION }}
+    env:
+      DEBUG: ${{ inputs.debug }}
     steps:
       # 1 Checkout Deployment Repo
       - name: Checkout deployment repo
@@ -70,13 +77,13 @@ jobs:
         id: chart_version 
         run: |
           # Conditional verbose mode
-          if [[ debug == "true" ]]; then
+          if [[ "$DEBUG" == "true" ]]; then
               echo "🔍 Debug mode enabled"
               set -x
           else
               echo "▶ Running in normal mode"
           fi
-          
+          echo "=== Versioning info ==="
           cd deployment-repo
 
           echo "Checking for changes that require chart version bump..."
