@@ -87,3 +87,42 @@ jobs:
 
           
 
+      # 6️ Commit and Push Changes
+
+      - name: Commit and Push changes
+        run: |
+          cd deployment-repo
+          git config user.name "riti-bhandari"
+          git config user.email "riti.bhandari16@gmail.com"
+
+          git add .
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+
+          git commit -m "Update image tag to ${{ inputs.image-tag }} and bump chart version for ${{ inputs.environment }}"
+          git push
+
+                # 7️ Helm Lint & Package
+      - name: Helm Lint and Package
+        run: |
+          cd deployment-repo
+
+          echo "Running Helm lint..."
+          helm lint ./apps/app1/helm-chart
+
+          echo "Packaging Helm chart..."
+          helm package ./apps/app1/helm-chart
+
+          echo "Helm package created:"
+          ls -lh *.tgz
+
+              # 8️ Upload Helm Package Artifact
+
+      - name: Upload Helm Chart Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: helm-chart-package
+          path: deployment-repo/*.tgz
