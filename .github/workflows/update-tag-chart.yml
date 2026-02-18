@@ -47,10 +47,43 @@ jobs:
           cd deployment-repo
           
           VALUES_FILE="apps/app1/app1.yaml"
-          CHART_FILE="apps/helm-chart/Chart.yaml"
+          CHART_FILE="apps/app1/helm-chart/Chart.yaml"
           
           echo "Updating image tag in: $VALUES_FILE"
           yq e ".image.tag = \"${{ inputs.image-tag }}\"" -i $VALUES_FILE
           
           echo "Updating appVersion in: $CHART_FILE"
           yq e ".appVersion = \"${{ inputs.image-tag }}\"" -i $CHART_FILE
+
+    
+      # 5️ Conditional Chart Version Bump
+      - name: Bump Chart Version if required
+        run: |
+          cd deployment-repo
+
+          echo "Checking for changes that require chart version bump..."
+
+          CHANGED_FILES=$(git status --porcelain | grep -E 'apps/app1/helm-chart/|values.yaml' || true)
+
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "No relevant changes detected. Skipping chart version bump."
+          else
+            echo "Changes detected:"
+            echo "$CHANGED_FILES"
+
+            CURRENT_VERSION=$(yq e '.version' apps/app1/helm-chart/Chart.yaml)
+            echo "Current Version: $CURRENT_VERSION"
+
+            IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+            PATCH=$((PATCH + 1))
+            NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+
+            echo "New Version: $NEW_VERSION"
+
+            yq e -i ".version = \"$NEW_VERSION\"" apps/app1/helm-chart/Chart.yaml
+
+            echo "Chart version bumped successfully."
+          fi
+
+          
+
